@@ -1,0 +1,9 @@
+---
+
+- name: Ensure opennebula packages are installed
+  action: apt pkg={{item}} state=installed update_cache=yes
+  with_items:
+   - opennebula
+   - opennebula-sunstone
+   - opennebula-gate
+   - opennebula-flow
