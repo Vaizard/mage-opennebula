@@ -1,5 +1,6 @@
 ---
 
+# packages
 - name: Ensure opennebula packages are installed
   action: apt pkg={{item}} state=installed update_cache=yes
   with_items:
@@ -7,3 +8,20 @@
    - opennebula-sunstone
    - opennebula-gate
    - opennebula-flow
+
+# network
+- name: Ensure br0 config is placed
+    template: src=ifcfg-br0.j2 dest=/etc/sysconfig/network-scripts/ifcfg-br0
+
+- name: Ensure MASQUARADE postrouting chain is set
+  iptables: table=nat chain=POSTROUTING  comment="Deliver internet to VMs" out_interface={{ masquerade_ext_if }} jump=MASQUERADE
+
+
+- name: Ensure opennebula is started and enabled
+  service: name=opennebula state=started enabled=yes
+
+- name: Ensure opennebula-sunstone is started and enabled
+  service: name=opennebula state=started enabled=yes
+
+- name: Restart network
+  service: name=network state=restarted
