@@ -75,5 +75,5 @@
     - opennebula-sunstone
     - libvirtd
 
-#- name: Restart network
-#  shell: netplan apply
+- name: Restart network
+  shell: netplan apply
