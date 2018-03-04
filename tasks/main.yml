@@ -13,8 +13,8 @@
 
 # frontend
 - name: If needed, run /usr/share/one/install_gems
-    shell: yes | /usr/share/one/install_gems
-    when: install_gems|changed
+  shell: yes | /usr/share/one/install_gems
+  when: install_gems|changed
 
 - name: Ensure /etc/one/sunstone-server.conf is configured
   lineinfile: 'dest=/etc/one/sunstone-server.conf regexp="^:host: 127.0.0.1" line=":host: 0.0.0.0"'
@@ -36,16 +36,16 @@
   register: needs_population
 
 - name: Populate network and images
-    args:
-      executable: /bin/bash
-    shell: |
-      cd
-      onehost create localhost -i kvm -v kvm -n dummy
-      onevnet create priv.net
-      oneimage create --name "Ubuntu-1604-KVM" --path http://marketplace.c12g.com/appliance/575fcaa28fb81d438c000001/download/0 --driver qcow2 -d default 
-      onetemplate create --name "Ubuntu-1604-KVM" --cpu 1 --vcpu 1 --memory 512 --arch x86_64 --disk "Ubuntu-1604-KVM" --nic "Private Network" --vnc --ssh --net_context
-    become_user: oneadmin
-    when: needs_population|changed
+  args:
+    executable: /bin/bash
+  shell: |
+    cd
+    onehost create localhost -i kvm -v kvm -n dummy
+    onevnet create priv.net
+    oneimage create --name "Ubuntu-1604-KVM" --path http://marketplace.c12g.com/appliance/575fcaa28fb81d438c000001/download/0 --driver qcow2 -d default 
+    onetemplate create --name "Ubuntu-1604-KVM" --cpu 1 --vcpu 1 --memory 512 --arch x86_64 --disk "Ubuntu-1604-KVM" --nic "Private Network" --vnc --ssh --net_context
+  become_user: oneadmin
+  when: needs_population|changed
 
 # network
 - name: Ensure br0 config is placed
