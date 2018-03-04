@@ -1,4 +1,9 @@
 ---
 opennebula_br0_addr: "10.100.0.1"
 opennebula_br0_netmask: "255.255.0.0"
+opennebula_br0_dns: "8.8.8.8"
+opennebula_br0_begin: "10.100.0.10"
+opennebula_br0_quantaty: "64000"
 opennebula_masquerade_ext_if: "enp6s4f0"
+
+
