@@ -8,15 +8,20 @@
    - opennebula-sunstone
    - opennebula-gate
    - opennebula-flow
+   - opennebula-context
   register: install_gems
 
 # frontend
-- name: Run /usr/share/one/install_gems
+- name: If needed, run /usr/share/one/install_gems
     shell: yes | /usr/share/one/install_gems
     when: install_gems|changed
 
-- name: Reconfigure /etc/one/sunstone-server.conf
+- name: Ensure /etc/one/sunstone-server.conf is configured
   lineinfile: 'dest=/etc/one/sunstone-server.conf regexp="^:host: 127.0.0.1" line=":host: 0.0.0.0"'
+
+- name: "Ensure oneadmin's ssh-config is configured"
+  template: src=ssh-config.j2 dest=/var/lib/one/.ssh/config mode=600 owner=oneadmin group=oneadmin
+
 
 # TODO install addons
 # https://github.com/OpenNebula/addon-lxdone/blob/master/Setup.md#11-installation
@@ -25,10 +30,10 @@
 
 # create network, popluate images
 
-  - name: Create a "Private Network" config
-    template: src=priv.net.j2 dest=/var/lib/one/priv.net 
-    become_user: oneadmin
-    register: needs_population
+- name: Create a "Private Network" config
+  template: src=priv.net.j2 dest=/var/lib/one/priv.net 
+  become_user: oneadmin
+  register: needs_population
 
 - name: Populate network and images
     args:
@@ -49,13 +54,24 @@
 - name: Ensure MASQUARADE postrouting chain is set
   iptables: table=nat chain=POSTROUTING  comment="[mage-opennebula] Deliver internet to VMs" out_interface={{ opennebula_masquerade_ext_if }} jump=MASQUERADE
 
-
 # restart services
-- name: Ensure opennebula is (re)started and enabled
-  service: name=opennebula state=restarted enabled=yes
+- name: If needed, enable and restart opennebula and opennebula-sunstone
+  service: name="{{ item }}" state=restarted enabled=true
+  with_items:
+    - opennebula
+    - opennebula-sunstone
+    - libvirtd
+  when: install_gems|changed
 
-- name: Ensure opennebula-sunstone is (re)started and enabled
-  service: name=opennebula state=restarted enabled=yes
+- pause:
+    secons: 1
+    
+- name: Ensure opennebula and opennebula-sunstone are enabled and started
+  service: name="{{ item }}" state=started enabled=true
+  with_items:
+    - opennebula
+    - opennebula-sunstone
+    - libvirtd
 
 - name: Restart network
   service: name=network state=restarted
