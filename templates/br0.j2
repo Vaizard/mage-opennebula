@@ -1,0 +1,13 @@
+#DEVICE=br0
+#TYPE=Bridge
+#IPADDR={{ opennebula_br0_addr }}
+#NETMASK={{ opennebula_br0_netmask }}
+#ONBOOT=yes
+#BOOTPROTO=static
+#NM_CONTROLLED=no
+
+auto br0
+iface br0 inet static
+      address {{ opennebula_br0_addr }}
+      netmask {{ opennebula_br0_netmask }}
+#      gateway {{ opennebula_br0_net_addr }} 

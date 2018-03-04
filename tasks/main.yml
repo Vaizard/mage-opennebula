@@ -9,6 +9,8 @@
    - opennebula-gate
    - opennebula-flow
    - opennebula-context
+   - qemu-kvm
+   - libvirt-bin
   register: install_gems
 
 # frontend
@@ -48,8 +50,18 @@
   when: needs_population|changed
 
 # network
+- name: Ensure interface including is enabled
+  lineinfile:
+    path: /etc/network/interfaces
+    line: last
+
+- name: "Ensure /etc/network/interfaces.d exists"
+  file:
+    path: /etc/network/interfaces.d
+    state: directory
+
 - name: Ensure br0 config is placed
-  template: src=ifcfg-br0.j2 dest=/etc/sysconfig/network-scripts/ifcfg-br0
+  template: src=br0.j2 dest=/etc/network/interfaces.d/br0
 
 - name: Ensure MASQUARADE postrouting chain is set
   iptables: table=nat chain=POSTROUTING  comment="[mage-opennebula] Deliver internet to VMs" out_interface={{ opennebula_masquerade_ext_if }} jump=MASQUERADE
@@ -64,7 +76,7 @@
   when: install_gems|changed
 
 - pause:
-    secons: 1
+    seconds: 1
     
 - name: Ensure opennebula and opennebula-sunstone are enabled and started
   service: name="{{ item }}" state=started enabled=true
@@ -74,4 +86,4 @@
     - libvirtd
 
 - name: Restart network
-  service: name=network state=restarted
+  service: name=networking state=restarted
