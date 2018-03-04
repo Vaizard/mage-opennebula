@@ -1,13 +1,20 @@
-#DEVICE=br0
-#TYPE=Bridge
-#IPADDR={{ opennebula_br0_addr }}
-#NETMASK={{ opennebula_br0_netmask }}
-#ONBOOT=yes
-#BOOTPROTO=static
-#NM_CONTROLLED=no
-
-auto br0
-iface br0 inet static
-      address {{ opennebula_br0_addr }}
-      netmask {{ opennebula_br0_netmask }}
-#      gateway {{ opennebula_br0_net_addr }} 
+{% if opennebula_net_static == false %}
+network:
+  version: 2
+  renderer: networkd
+  bridges:
+    br0:
+      interfaces: [{{ opennebula_masquerade_ext_if }}]
+      dhcp4: true
+      parameters:
+        stp: false
+{% else %}
+network:
+  version: 2
+  renderer: networkd
+  bridges:
+    br0:
+      interfaces: [{{ opennebula_masquerade_ext_if }}]
+      dhcp4: false
+      addresses: [ {{ opennebula_br0_addr }}/{{ opennebula_br0_netmask_cidr }}]
+{% endif %}

@@ -50,18 +50,8 @@
   when: needs_population|changed
 
 # network
-- name: Ensure interface including is enabled
-  lineinfile:
-    path: /etc/network/interfaces
-    line: last
-
-- name: "Ensure /etc/network/interfaces.d exists"
-  file:
-    path: /etc/network/interfaces.d
-    state: directory
-
 - name: Ensure br0 config is placed
-  template: src=br0.j2 dest=/etc/network/interfaces.d/br0
+  template: src=br0.j2 dest=/etc/netplan/99-mage-opennebula.yaml
 
 - name: Ensure MASQUARADE postrouting chain is set
   iptables: table=nat chain=POSTROUTING  comment="[mage-opennebula] Deliver internet to VMs" out_interface={{ opennebula_masquerade_ext_if }} jump=MASQUERADE
@@ -85,5 +75,5 @@
     - opennebula-sunstone
     - libvirtd
 
-- name: Restart network
-  service: name=networking state=restarted
+#- name: Restart network
+#  shell: netplan apply
