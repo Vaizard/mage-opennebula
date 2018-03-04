@@ -9,6 +9,7 @@
    - opennebula-gate
    - opennebula-flow
    - opennebula-context
+   - opennebula-node
    - qemu-kvm
    - libvirt-bin
   register: install_gems
@@ -74,6 +75,7 @@
     - opennebula
     - opennebula-sunstone
     - libvirtd
+    - libvirt-bin
 
 - name: Restart network
   shell: netplan apply
