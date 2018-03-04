@@ -8,20 +8,54 @@
    - opennebula-sunstone
    - opennebula-gate
    - opennebula-flow
+  register: install_gems
+
+# frontend
+- name: Run /usr/share/one/install_gems
+    shell: yes | /usr/share/one/install_gems
+    when: install_gems|changed
+
+- name: Reconfigure /etc/one/sunstone-server.conf
+  lineinfile: 'dest=/etc/one/sunstone-server.conf regexp="^:host: 127.0.0.1" line=":host: 0.0.0.0"'
+
+# TODO install addons
+# https://github.com/OpenNebula/addon-lxdone/blob/master/Setup.md#11-installation
+# https://github.com/OpenNebula/addon-lxdone/archive/v5.4-5.tar.gz
+# https://opennebula.org/addons/catalog/
+
+# create network, popluate images
+
+  - name: Create a "Private Network" config
+    template: src=priv.net.j2 dest=/var/lib/one/priv.net 
+    become_user: oneadmin
+    register: needs_population
+
+- name: Populate network and images
+    args:
+      executable: /bin/bash
+    shell: |
+      cd
+      onehost create localhost -i kvm -v kvm -n dummy
+      onevnet create priv.net
+      oneimage create --name "Ubuntu-1604-KVM" --path http://marketplace.c12g.com/appliance/575fcaa28fb81d438c000001/download/0 --driver qcow2 -d default 
+      onetemplate create --name "Ubuntu-1604-KVM" --cpu 1 --vcpu 1 --memory 512 --arch x86_64 --disk "Ubuntu-1604-KVM" --nic "Private Network" --vnc --ssh --net_context
+    become_user: oneadmin
+    when: needs_population|changed
 
 # network
 - name: Ensure br0 config is placed
-    template: src=ifcfg-br0.j2 dest=/etc/sysconfig/network-scripts/ifcfg-br0
+  template: src=ifcfg-br0.j2 dest=/etc/sysconfig/network-scripts/ifcfg-br0
 
 - name: Ensure MASQUARADE postrouting chain is set
-  iptables: table=nat chain=POSTROUTING  comment="Deliver internet to VMs" out_interface={{ masquerade_ext_if }} jump=MASQUERADE
+  iptables: table=nat chain=POSTROUTING  comment="[mage-opennebula] Deliver internet to VMs" out_interface={{ opennebula_masquerade_ext_if }} jump=MASQUERADE
 
 
-- name: Ensure opennebula is started and enabled
-  service: name=opennebula state=started enabled=yes
+# restart services
+- name: Ensure opennebula is (re)started and enabled
+  service: name=opennebula state=restarted enabled=yes
 
-- name: Ensure opennebula-sunstone is started and enabled
-  service: name=opennebula state=started enabled=yes
+- name: Ensure opennebula-sunstone is (re)started and enabled
+  service: name=opennebula state=restarted enabled=yes
 
 - name: Restart network
   service: name=network state=restarted
