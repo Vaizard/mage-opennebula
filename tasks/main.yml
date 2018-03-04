@@ -12,6 +12,7 @@
    - opennebula-node
    - qemu-kvm
    - libvirt-bin
+   - libvirtd
   register: install_gems
 
 # frontend
