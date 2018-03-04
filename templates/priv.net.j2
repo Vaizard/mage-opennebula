@@ -1,0 +1,18 @@
+# Confgiuration attributes (dummy driver)
+NAME        = "Private Network"
+DESCRIPTION = "A private network for VM inter-communication"
+
+BRIDGE = "br0"
+
+# Context attributes
+NETWORK_ADDRESS = "{{ opennebula_br0_net_addr }}"
+NETWORK_MASK    = "{{ opennebula_br0_netmask }}"
+DNS             = "{{ opennebula_br0_dns }}"
+GATEWAY         = "{{ opennebula_br0_addr }}"
+
+#Address Ranges, only these addresses will be assigned to the VMs
+AR = [
+    TYPE = "IP4",
+    IP   = "{{ opennebula_br0_begin }}",
+    SIZE = "{{ opennebula_br0_quantaty }}"
+]
